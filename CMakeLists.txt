@@ -36,3 +36,6 @@ add_dependencies(tf_move_relative tf_move_relative_gencfg)
 
 add_executable(tf_move_relative_client src/tf_move_relative_client.cpp)
 target_link_libraries(tf_move_relative_client ${catkin_LIBRARIES})
+
+add_executable(turtle_listener src/turtle_listener.cpp)
+target_link_libraries(turtle_listener ${catkin_LIBRARIES})
