@@ -24,3 +24,7 @@ Trapezoid velocity planning.
 Triangle velocity planning
 
 ![image](https://github.com/qaz9517532846/tf_move_relative/blob/main/image/triangle_vel_planning.png)
+
+------
+
+Copyright © 2020 ZM Robotics Software Laboratory.
