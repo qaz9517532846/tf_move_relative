@@ -27,4 +27,6 @@ Triangle velocity planning
 
 ------
 
+This repository is for your reference only. Copying, patent application, academic journals are strictly prohibited.
+
 Copyright © 2020 ZM Robotics Software Laboratory.
