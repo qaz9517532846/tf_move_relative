@@ -13,11 +13,11 @@
 
 ## tf_move_relative have Trapezoid and triangle velocity planning function.
 
-Trapezoid velocity planning.
+- 1. Trapezoid velocity planning.
 
 ![image](https://github.com/qaz9517532846/tf_move_relative/blob/main/image/Trapezoid_vel_planning.png)
 
-Triangle velocity planning
+- 2. Triangle velocity planning
 
 ![image](https://github.com/qaz9517532846/tf_move_relative/blob/main/image/triangle_vel_planning.png)
 
