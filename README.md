@@ -1,21 +1,17 @@
 # tf_move_relative
-Relative motion between tf and tf with velocity planning function.
+- Relative motion between tf and tf with velocity planning function.
 
-Need ROS tutorial package [tf2_learning](http://wiki.ros.org/tf2/Tutorials).
+- Need ROS tutorial package [tf2_learning](http://wiki.ros.org/tf2/Tutorials).
 
-Step1. Start tf_move_relative launch file.
+- Step1. Start tf_move_relative launch file.
 
-``` bash
-$ roslaunch  tf_move_relative demo.launch
-```
+  ``` $ roslaunch  tf_move_relative demo.launch ```
 
-Step2. Start tf_move_relative client cpp file and input go to relative tf position.
+- Step2. Start tf_move_relative client cpp file and input go to relative tf position.
 
-``` bash
-$ rosrun  tf_move_relative tf_move_relative_client
-```
+  ``` $ rosrun  tf_move_relative tf_move_relative_client ```
 
-tf_move_relative have Trapezoid and triangle velocity planning function.
+## tf_move_relative have Trapezoid and triangle velocity planning function.
 
 Trapezoid velocity planning.
 
