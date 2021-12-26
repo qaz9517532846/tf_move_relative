@@ -36,6 +36,7 @@ class tf_MoveRelative
           double max_vel;
           double min_vel;
           double acceleration;
+          double current_vel;
       };
 
       velocity_setting x_, y_, theta_;
@@ -43,13 +44,7 @@ class tf_MoveRelative
       std::string fixed_frame_;
       std::string base_frame_;
 
-      double diff_initial_x;
-      double diff_initial_y;
-      double diff_initial_th;
-
-      ros::Time time_initial;
-      ros::Time now;
-      double move_time_now;
+      ros::Time last_time_;
 
       double rate_;
       double timeout_;
@@ -57,6 +52,6 @@ class tf_MoveRelative
 
       double velocity;
 
-      double cal_vel(double move_to_maxvel, double difference, velocity_setting &set);
+      double cal_vel(double difference, velocity_setting &set);
       void stop_vel();
 };

@@ -11,7 +11,7 @@
 
   <node pkg="tf_move_relative" type="turtle_listener" name="turtle_listener" />
 
-  <node pkg="tf_move_relative" type="tf_move_relative" name="tf_move_relative">
+  <node pkg="tf_move_relative" type="tf_move_relative" name="tf_move_relative" output="screen">
      <remap from="/cmd_vel" to="/turtle2/cmd_vel"/>
   </node>
   

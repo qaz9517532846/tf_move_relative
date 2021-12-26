@@ -51,17 +51,9 @@ void tf_MoveRelative::execute(const move_base_msgs::MoveBaseGoalConstPtr &goal)
     move_base_msgs::MoveBaseFeedback feedback;
     geometry_msgs::PoseStamped goal_pose;
     geometry_msgs::TransformStamped move_relative_fixed_transform;
-    geometry_msgs::TransformStamped base_odom_initial_transform;
 
     tf2::Stamped<tf2::Transform> move_relative_fixed_tf2;
-    tf2::Stamped<tf2::Transform> base_odom_initial_tf2;
     tf2::Stamped<tf2::Transform> goal_tf2;
-
-    tf2::Transform diff_initial;
-
-    double move_to_maxvelx;
-    double move_to_maxvely;
-    double move_to_maxvelth;
 
     ros::Rate r(rate_);
     ros::Duration timeout = ros::Duration(timeout_);
@@ -71,28 +63,15 @@ void tf_MoveRelative::execute(const move_base_msgs::MoveBaseGoalConstPtr &goal)
 
     goal_pub_.publish(goal->target_pose);
 
-    time_initial = ros::Time::now();
-
     try
     {
       tf_Buffer_.transform(goal->target_pose, goal_pose, move_relative_frame_); //goal->target_pose relative to move_relative_frame_ convert goal_pose
       
       // lookupTransform (parent, child, ...)
-      move_relative_fixed_transform = tf_Buffer_.lookupTransform(fixed_frame_, move_relative_frame_, time_initial, timeout);
-      base_odom_initial_transform = tf_Buffer_.lookupTransform(base_frame_, fixed_frame_, time_initial, timeout);
+      move_relative_fixed_transform = tf_Buffer_.lookupTransform(fixed_frame_, move_relative_frame_, ros::Time::now(), timeout);
 
       tf2::convert(move_relative_fixed_transform, move_relative_fixed_tf2); // convert geometry_msgs::PoseStamped &msg to tf2::Stamped< tf2::Transform >
-      tf2::convert(base_odom_initial_transform, base_odom_initial_tf2); // convert geometry_msgs::PoseStamped &msg to tf2::Stamped< tf2::Transform >
       tf2::convert(goal_pose, goal_tf2);
-
-      diff_initial = base_odom_initial_tf2 * move_relative_fixed_tf2 * goal_tf2;
-      diff_initial_x = diff_initial.getOrigin().x();
-      diff_initial_y = diff_initial.getOrigin().y();
-      diff_initial_th = tf2::getYaw(diff_initial.getRotation());
-
-      move_to_maxvelx = sqrt(fabs(diff_initial_x) / x_.acceleration);
-      move_to_maxvely = sqrt(fabs(diff_initial_y) / y_.acceleration);
-      move_to_maxvelth = sqrt(fabs(diff_initial_th) / theta_.acceleration);
 
       if(x_.acceleration == 0 || y_.acceleration == 0 || theta_.acceleration == 0)
       {
@@ -107,7 +86,9 @@ void tf_MoveRelative::execute(const move_base_msgs::MoveBaseGoalConstPtr &goal)
       return;
     }
 
-    velocity = 0.0;
+    x_.current_vel = 0;
+    y_.current_vel = 0;
+    theta_.current_vel = 0;
 
     while(ros::ok())
     {
@@ -123,9 +104,9 @@ void tf_MoveRelative::execute(const move_base_msgs::MoveBaseGoalConstPtr &goal)
 
       try
       {
-        now = ros::Time::now();
+        last_time_ = ros::Time::now();
         // lookupTransform (parent, child, ...)
-        fixed_base_transform = tf_Buffer_.lookupTransform(base_frame_, fixed_frame_, now, timeout);
+        fixed_base_transform = tf_Buffer_.lookupTransform(base_frame_, fixed_frame_, last_time_, timeout);
       }
       catch (tf2::TransformException &ex)
       {
@@ -147,6 +128,7 @@ void tf_MoveRelative::execute(const move_base_msgs::MoveBaseGoalConstPtr &goal)
       double diff_x = diff_tf2.getOrigin().x();
       double diff_y = diff_tf2.getOrigin().y();
       double diff_yaw = tf2::getYaw(diff_tf2.getRotation());
+      //ROS_INFO("diff_x = %f, diff_y = %f, diff_th = %f", diff_x, diff_y, diff_yaw);
       if (diff_x * diff_x + diff_y * diff_y <= linear_tolerance_sq_ && fabs(diff_yaw) <= angular_tolerance_)
       {
         ROS_INFO_STREAM("diff_tf2.getOrigin().x(): " << diff_tf2.getOrigin().x() << " diff_tf2.getOrigin().y(): " << diff_tf2.getOrigin().y() );
@@ -172,9 +154,9 @@ void tf_MoveRelative::execute(const move_base_msgs::MoveBaseGoalConstPtr &goal)
       action_server_.publishFeedback(feedback);
 
       geometry_msgs::Twist pub_vel;
-      pub_vel.linear.x = cal_vel(move_to_maxvelx, diff_x, x_);
-      pub_vel.linear.y = cal_vel(move_to_maxvely, diff_y, y_);
-      pub_vel.angular.z = cal_vel(move_to_maxvelth, diff_yaw, theta_);
+      pub_vel.linear.x = cal_vel(diff_x, x_);
+      pub_vel.linear.y = cal_vel(diff_y, y_);
+      pub_vel.angular.z = cal_vel(diff_yaw, theta_);
       vel_pub_.publish(pub_vel);
 
       r.sleep();
@@ -187,37 +169,32 @@ void tf_MoveRelative::stop_vel()
     vel_pub_.publish(pub_vel);
 }
 
-double tf_MoveRelative::cal_vel(double move_to_maxvel, double difference, velocity_setting &set)
+double tf_MoveRelative::cal_vel(double difference, velocity_setting &set)
 {
-  int sign = 1;
-  move_time_now = (now - time_initial).toSec();
+  double velocity;
+  double dt = (ros::Time::now() - last_time_).toSec();
 
-  if (difference == 0.0)
-  {
-    return 0;
-  }
-  else if (difference < 0.0)
-  {
-    sign = -1;
-  }
+  double sign = difference < 0 ? -1 : 1;
+  
+  velocity = sign * sqrt(fabs(difference) * 2 * set.acceleration);
 
-  if(move_time_now <= move_to_maxvel)
-  {
-    velocity = sign * set.acceleration * move_time_now;
-  }
-  else
-  {
-    velocity = sign * sqrt(fabs(difference) * 2 * set.acceleration);
-  }
+  if(velocity > set.current_vel)
+	{
+		set.current_vel += fmin(velocity - set.current_vel, set.acceleration * dt);
+	}
+	else
+	{
+		set.current_vel += fmax(velocity - set.current_vel, -set.acceleration * dt);
+	}
 
-  if (velocity > set.max_vel)
+  if(set.current_vel > set.max_vel)
   {
-    velocity = set.max_vel;
+    set.current_vel = set.max_vel;
   }
-  else if (velocity < set.min_vel)
+  else if(set.current_vel < set.min_vel)
   {
-    velocity = set.min_vel;
+    set.current_vel = set.min_vel;
   }
 
-  return velocity;
+  return set.current_vel;
 }
