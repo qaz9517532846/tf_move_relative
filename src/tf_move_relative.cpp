@@ -90,6 +90,7 @@ void tf_MoveRelative::execute(const move_base_msgs::MoveBaseGoalConstPtr &goal)
     y_.current_vel = 0;
     theta_.current_vel = 0;
 
+    last_time_ = ros::Time::now();
     while(ros::ok())
     {
       if (action_server_.isPreemptRequested())
@@ -104,7 +105,6 @@ void tf_MoveRelative::execute(const move_base_msgs::MoveBaseGoalConstPtr &goal)
 
       try
       {
-        last_time_ = ros::Time::now();
         // lookupTransform (parent, child, ...)
         fixed_base_transform = tf_Buffer_.lookupTransform(base_frame_, fixed_frame_, last_time_, timeout);
       }
@@ -158,7 +158,7 @@ void tf_MoveRelative::execute(const move_base_msgs::MoveBaseGoalConstPtr &goal)
       pub_vel.linear.y = cal_vel(diff_y, y_);
       pub_vel.angular.z = cal_vel(diff_yaw, theta_);
       vel_pub_.publish(pub_vel);
-
+      last_time_ = ros::Time::now();
       r.sleep();
     }
 }
