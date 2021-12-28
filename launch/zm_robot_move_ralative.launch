@@ -1,0 +1,5 @@
+<launch>
+  <node pkg="tf_move_relative" type="tf_move_relative" name="tf_move_relative" output="screen">
+     <remap from="/cmd_vel" to="/turtle2/cmd_vel"/>
+  </node> 
+</launch>
