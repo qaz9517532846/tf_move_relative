@@ -36,27 +36,23 @@ class tf_MoveRelative
           double max_vel;
           double min_vel;
           double acceleration;
+          double current_vel;
       };
 
-      velocity_setting x_, y_, theta_;
+      velocity_setting linear_, theta_;
 
       std::string fixed_frame_;
       std::string base_frame_;
 
-      double diff_initial_x;
-      double diff_initial_y;
-      double diff_initial_th;
-
-      ros::Time time_initial;
-      ros::Time now;
-      double move_time_now;
+      ros::Time last_time_;
 
       double rate_;
       double timeout_;
-      double linear_tolerance_sq_, angular_tolerance_;
+      double linear_tolerance_sq_, angular_moving_tolerance_, angular_tolerance_;
 
       double velocity;
 
-      double cal_vel(double move_to_maxvel, double difference, velocity_setting &set);
+      double cal_vel(double difference, velocity_setting &set);
+      double getDistance(double delta_x, double delta_y);
       void stop_vel();
 };
