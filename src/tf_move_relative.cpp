@@ -40,8 +40,6 @@ void tf_MoveRelative::reconfig_callback(tf_move_relative::tf_MoveRelativeConfig 
     x_.acceleration = config.acceleration_x;
     y_.acceleration = config.acceleration_y;
     theta_.acceleration = config.acceleration_theta;
-    brake_linear_vel_ = config.linear_brake_vel;
-    brake_angular_vel_ = config.angular_brake_vel;
     linear_tolerance_sq_ = config.linear_tolerance * config.linear_tolerance;
     angular_tolerance_ = config.angular_tolerance;
 }
@@ -134,14 +132,10 @@ void tf_MoveRelative::execute(const move_base_msgs::MoveBaseGoalConstPtr &goal)
       if (diff_x * diff_x + diff_y * diff_y <= linear_tolerance_sq_ && fabs(diff_yaw) <= angular_tolerance_)
       {
         ROS_INFO_STREAM("diff_tf2.getOrigin().x(): " << diff_tf2.getOrigin().x() << " diff_tf2.getOrigin().y(): " << diff_tf2.getOrigin().y());
-        if(sqrt(x_.current_vel * x_.current_vel + y_.current_vel * y_.current_vel) < brake_linear_vel_ && 
-           fabs(theta_.current_vel) < brake_angular_vel_)
-        {
-          stop_vel();
-          ROS_INFO_STREAM("Success");
-          action_server_.setSucceeded(result, "Success");
-          return;
-        }
+        stop_vel();
+        ROS_INFO_STREAM("Success");
+        action_server_.setSucceeded(result, "Success");
+        return;
       }
 
       feedback.base_position.header =  goal->target_pose.header;
