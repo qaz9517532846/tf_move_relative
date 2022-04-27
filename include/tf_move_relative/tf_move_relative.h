@@ -51,8 +51,6 @@ class tf_MoveRelative
       double linear_tolerance_sq_, angular_tolerance_;
 
       double velocity;
-      double brake_linear_vel_;
-      double brake_angular_vel_;
 
       double cal_vel(double difference, velocity_setting &set);
       void stop_vel();
