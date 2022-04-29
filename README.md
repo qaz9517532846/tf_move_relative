@@ -1,7 +1,21 @@
 # tf_move_relative
-- Relative motion between tf and tf with velocity planning function.
+- Relative motion between tf and tf with velocity planning function for omni wheel.
+
+## Built with
+
+- ROS Noetic under Ubuntu 20.04 LTS
+
+- ROS Melodic under Ubuntu 18.04 LTS
+
+------
+
+## Getting Started
+
+### Installation
 
 - Need ROS tutorial package [tf2_learning](http://wiki.ros.org/tf2/Tutorials).
+
+### Run
 
 - Step1. Start tf_move_relative launch file.
 
